@@ -1,0 +1,37 @@
+# AI 安全审计 agent — MVP 配置
+# 定位：把 tract 挖洞方法论（无 sign check 的窄化转换 / 无边界检查的 parser 索引）
+#       固化为可复用静态审计工具链。纯防御侧，合法合规。
+# 用法：python run.py --config config.yaml
+
+scan_targets:
+  - path: /path/to/tract
+    languages: [rust]
+  - path: /path/to/onnx
+    languages: [cpp]
+
+# 启用的规则（函数名见 rules.py）
+rules:
+  - rust_as_usize_no_check      # Rust 窄化转换 (as usize/u64/u32) 前无符号/边界检查
+  - onnx_adapter_no_assert      # ONNX adapter inputs()[N] 索引前无 assertInputsAvailable
+  - panic_on_external_parse     # 解析外部/不可信数据路径上的 unwrap/expect/panic
+
+output:
+  formats: [json, markdown]
+  dir: ./output
+  # 严重度阈值：只输出 >= info 的发现（避免噪音淹没）
+  min_severity: info
+
+# V2: LLM 自动 triage（可选增强）。enabled=false 时走本地启发式，零依赖零网络。
+# 将来配置环境变量 DEEPSEEK_API_KEY 并把 enabled 改为 true 即可启用真 LLM 判定。
+llm:
+  enabled: false
+  provider: deepseek
+  api_base: https://api.deepseek.com
+  model: deepseek-v4-flash
+  api_key_env: DEEPSEEK_API_KEY
+  max_candidates: 200
+  timeout: 30
+
+# V2: PR 草稿只取 confidence 最高的 top_k 个，避免海量噪音。
+triage:
+  top_k: 15
