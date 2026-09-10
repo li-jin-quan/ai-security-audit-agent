@@ -11,9 +11,11 @@ scan_targets:
 
 # 启用的规则（函数名见 rules.py）
 rules:
-  - rust_as_usize_no_check      # Rust 窄化转换 (as usize/u64/u32) 前无符号/边界检查
-  - onnx_adapter_no_assert      # ONNX adapter inputs()[N] 索引前无 assertInputsAvailable
-  - panic_on_external_parse     # 解析外部/不可信数据路径上的 unwrap/expect/panic
+  - rust_as_usize_no_check         # Rust 窄化转换 (as usize/u64/u32) 前无符号/边界检查
+  - onnx_adapter_no_assert         # ONNX adapter inputs()[N] 索引前无 assertInputsAvailable
+  - panic_on_external_parse        # 解析外部/不可信数据路径上的 unwrap/expect/panic
+  - rust_with_capacity_untrusted   # with_capacity(外部长度) 无上限检查 -> 无界分配 (CWE-770)
+  - rust_slice_range_no_bound      # 外部解析路径变量端点切片无边界检查 (CWE-125/789)
 
 output:
   formats: [json, markdown]
